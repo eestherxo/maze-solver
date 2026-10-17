@@ -1,5 +1,5 @@
 import pygame
-from maze_solver import dfs
+from maze_solver import dfs, greedy_best_first
 pygame.init()
 
 CELL_SIZE = 60
@@ -15,7 +15,7 @@ maze = [
      [1,0,0,1,0,0,0,0,"G",1],
      [1,1,1,1,1,1,1,1,1,1]
 ]
-d = dfs(maze, (1, 1), (8, 8))  # Get the path from start to goal using DFS
+d = greedy_best_first(maze, (1, 1), (8, 8))  # Get the path from start to goal using Greedy Best-First
 path = d[0]  # Extract the path from the result
 visited = d[1]  # Extract the visited order from the result
 

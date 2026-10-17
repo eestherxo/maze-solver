@@ -22,6 +22,10 @@ def get_actions(maze, node):
 
      return actions
 
+def get_greedy_actions(maze, node, goal):
+     actions = get_actions(maze, node)
+     actions.sort(key=lambda x: manhattan_distance(x, goal))
+     return actions
 
 def bfs(maze, start, goal):
      """
@@ -122,8 +126,33 @@ def astar(maze, start, goal, heuristic=manhattan_distance):
 
 
 def greedy_best_first(maze, start, goal, heuristic=manhattan_distance):
-# Same signature and return format as bfs()
-     pass
+     # using the heuristic function to guide the search and using the priority queue to select the next node to explore based on the heuristic value.
+     explored = set()
+     explored_order = []
+     path = {}
+     frontier = [(heuristic(start, goal), start)]
+     while True:
+          if not frontier:
+               return ([], explored_order, {"nodes_expanded": len(explored), "path_length": 0, "path_cost": 0.0})
+          _, node = frontier.pop(0)
+          explored.add(node)
+          explored_order.append(node)
+          if node == goal:
+               break
+          for action in get_greedy_actions(maze, node, goal):
+               child = action
+               if child not in explored and all(child != n for _, n in frontier):
+                    frontier.append((heuristic(child, goal), child))
+                    path[child] = node
+          frontier.sort(key=lambda x: x[0])
+     node = goal
+     path_set = []
+     while node in path:
+          path_set.append(node)
+          node = path[node]
+     path_set.append(start)
+     path_set.reverse()
+     return (path_set, explored_order, {"nodes_expanded": len(explored), "path_length": len(path_set) - 1, "path_cost": 0.0})
 # daniel
 
 
@@ -142,7 +171,7 @@ if __name__ == "__main__":
 ]
      start = (1 , 1)
      goal = (8 , 8)
-     path_dfs , visited_dfs , stats_dfs = dfs(maze , start , goal)
-     print("DFS Path: ", path_dfs)
-     print("DFS Visited: ", visited_dfs)
-     print("DFS Stats: ", stats_dfs)
+     path_greedy , visited_greedy , stats_greedy = greedy_best_first(maze , start , goal)
+     print("Greedy Best-First Path: ", path_greedy)
+     print("Greedy Best-First Visited: ", visited_greedy)
+     print("Greedy Best-First Stats: ", stats_greedy)
