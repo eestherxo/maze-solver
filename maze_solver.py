@@ -1,5 +1,8 @@
 from collections import deque
+import heapq
+
 manhattan_distance = lambda a, b: abs(a[0] - b[0]) + abs(a[1] - b[1])
+
 def get_actions(maze, node):
      row, col = node 
      actions = []
@@ -26,6 +29,7 @@ def get_greedy_actions(maze, node, goal):
      actions = get_actions(maze, node)
      actions.sort(key=lambda x: manhattan_distance(x, goal))
      return actions
+
 
 def bfs(maze, start, goal):
      """
@@ -56,7 +60,7 @@ def bfs(maze, start, goal):
      
 
      if start == goal:
-          return [], visited, stats
+          return [start], visited, stats
      parents = {start: None}
      discovered = deque([start])
      
@@ -72,9 +76,8 @@ def bfs(maze, start, goal):
                child = action 
                if (child not in visited) and (child not in discovered):
                     parents[child] = node
-                    if child == goal:
-                         break
                     discovered.append(child)
+
      node = goal
      while node is not None:
           path.append(node)
@@ -120,8 +123,52 @@ def dfs(maze, start, goal):
 
 def astar(maze, start, goal, heuristic=manhattan_distance):
 # Same signature and return format as bfs()
-     pass
-# esther
+
+     path = []
+     
+     visited = []
+     
+     stats = {
+          "nodes_expanded": 0,
+          "path_length": 0,
+          "path_cost": 0.0
+     }
+
+     if start == goal:
+          return [goal], visited, stats
+     parents = {start: None}
+     discovered = [(heuristic(start, goal), 0, start)]
+     discovered_node_costs = {start: 0}
+
+     while discovered:
+          _, current_cost, node = heapq.heappop(discovered)
+
+          if current_cost != discovered_node_costs.get(node):
+               continue
+          
+          visited.append(node)
+          if node == goal:
+               break
+
+          for child in get_actions(maze, node):
+               new_cost = current_cost + 1
+               if new_cost < discovered_node_costs.get(child, float("inf")):
+                    parents[child] = node
+                    discovered_node_costs[child] = new_cost
+                    priority = new_cost + heuristic(child, goal)
+                    heapq.heappush(discovered, (priority, new_cost, child))
+     
+     node = goal
+     while node is not None:
+          path.append(node)
+          node = parents[node]
+     path.reverse()
+
+     stats["path_length"] = len(path) - 1
+     stats["path_cost"] = discovered_node_costs[goal]
+     stats["nodes_expanded"] = len(visited)
+     return path, visited, stats
+
 
 
 
@@ -155,23 +202,3 @@ def greedy_best_first(maze, start, goal, heuristic=manhattan_distance):
      return (path_set, explored_order, {"nodes_expanded": len(explored), "path_length": len(path_set) - 1, "path_cost": 0.0})
 # daniel
 
-
-if __name__ == "__main__":
-     maze = [
-     [1,1,1,1,1,1,1,1,1,1],
-     [1,"S",0,1,0,0,1,0,0,1],
-     [1,0,0,0,1,0,1,1,0,1],
-     [1,1,1,0,0,1,0,0,0,1],
-     [1,0,1,0,0,0,0,0,0,1],
-     [1,0,0,0,0,0,1,1,0,1],
-     [1,0,0,0,0,0,0,0,0,1],
-     [1,1,1,0,0,0,0,1,0,1],
-     [1,0,0,1,0,0,0,0,"G",1],
-     [1,1,1,1,1,1,1,1,1,1]
-]
-     start = (1 , 1)
-     goal = (8 , 8)
-     path_greedy , visited_greedy , stats_greedy = greedy_best_first(maze , start , goal)
-     print("Greedy Best-First Path: ", path_greedy)
-     print("Greedy Best-First Visited: ", visited_greedy)
-     print("Greedy Best-First Stats: ", stats_greedy)
