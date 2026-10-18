@@ -171,7 +171,7 @@ if __name__ == "__main__":
 ]
      start = (1 , 1)
      goal = (8 , 8)
-     path_greedy , visited_greedy , stats_greedy = greedy_best_first(maze , start , goal)
-     print("Greedy Best-First Path: ", path_greedy)
-     print("Greedy Best-First Visited: ", visited_greedy)
-     print("Greedy Best-First Stats: ", stats_greedy)
+     path_bfs , visited_bfs , stats_bfs = bfs(maze , start , goal)
+     print("BFS Path: ", path_bfs)
+     print("BFS Visited: ", visited_bfs)
+     print("BFS Stats: ", stats_bfs)
