@@ -85,7 +85,7 @@ def bfs(maze, start, goal):
      path.reverse()
 
      stats["nodes_expanded"] = len(visited)
-     stats["path_length"] = len(path) - 1
+     stats["path_length"] = len(path)
      return path, visited, stats
 # esther
 
@@ -164,11 +164,11 @@ def astar(maze, start, goal, heuristic=manhattan_distance):
           node = parents[node]
      path.reverse()
 
-     stats["path_length"] = len(path) - 1
+     stats["path_length"] = len(path)
      stats["path_cost"] = discovered_node_costs[goal]
      stats["nodes_expanded"] = len(visited)
      return path, visited, stats
-
+# esther
 
 
 
