@@ -49,39 +49,42 @@ def bfs(maze, start, goal):
                    'path_cost' (int or float)
     """
 
-    path = []
-
-    visited = []
-
-    stats = {"nodes_expanded": 0, "path_length": 0, "path_cost": 0.0}
+    stats = {"nodes_expanded": 0, "path_length": 0, "path_cost": 0}
 
     if start == goal:
-        return [start], visited, stats
+        return [start], [], stats
+
     parents = {start: None}
-    discovered = deque([start])
+    frontier = deque([start])
+    expanded = []
 
-    while discovered:
-        node = discovered.popleft()
-        visited.append(node)
+    while frontier:
+        node = frontier.popleft()
+        expanded.append(node)
 
-        if node == goal:
-            break
+        for child in get_actions(maze, node):
+            if child in parents:
+                continue
 
-        for action in get_actions(maze, node):
-            child = action
-            if (child not in visited) and (child not in discovered):
-                parents[child] = node
-                discovered.append(child)
+            parents[child] = node
 
-    node = goal
-    while node is not None:
-        path.append(node)
-        node = parents[node]
-    path.reverse()
+            # check if child is the goal before adding it to the frontier/discovered nodes
+            if child == goal:
+                path = []
+                current = goal
+                while current is not None:
+                    path.append(current)
+                    current = parents[current]
+                path.reverse()
 
-    stats["nodes_expanded"] = len(visited)
-    stats["path_length"] = len(path)
-    return path, visited, stats
+                stats["nodes_expanded"] = len(expanded)
+                stats["path_length"] = len(path) - 1
+                return path, expanded, stats
+
+            frontier.append(child)
+
+    stats["nodes_expanded"] = len(expanded)
+    return [], expanded, stats
 
 
 # esther
@@ -98,13 +101,13 @@ def dfs(maze, start, goal):
             return (
                 [],
                 explorred_order,
-                {"nodes_expanded": len(explored), "path_length": 0, "path_cost": 0.0},
+                {"nodes_expanded": len(explored), "path_length": 0, "path_cost": 0},
             )
         node = frontier.pop()
-        explored.add(node)
-        explorred_order.append(node)
         if node == goal:
             break
+        explored.add(node)
+        explorred_order.append(node)
         for action in get_actions(maze, node):
             child = action
             if child not in explored and child not in frontier:
@@ -123,7 +126,7 @@ def dfs(maze, start, goal):
         {
             "nodes_expanded": len(explored),
             "path_length": len(path_set) - 1,
-            "path_cost": 0.0,
+            "path_cost": 0,
         },
     )
 
@@ -136,33 +139,34 @@ def astar(maze, start, goal, heuristic=manhattan_distance):
 
     path = []
 
-    visited = []
+    expanded = []
 
-    stats = {"nodes_expanded": 0, "path_length": 0, "path_cost": 0.0}
+    stats = {"nodes_expanded": 0, "path_length": 0, "path_cost": 0}
 
     if start == goal:
-        return [goal], visited, stats
+        return [goal], expanded, stats
     parents = {start: None}
-    discovered = [(heuristic(start, goal), 0, start)]
-    discovered_node_costs = {start: 0}
+    frontier = [(heuristic(start, goal), 0, start)]
+    frontier_node_costs = {start: 0}
 
-    while discovered:
-        _, current_cost, node = heapq.heappop(discovered)
+    while frontier:
+        _, current_cost, node = heapq.heappop(frontier)
 
-        if current_cost != discovered_node_costs.get(node):
+        if current_cost != frontier_node_costs.get(node):
             continue
 
-        visited.append(node)
         if node == goal:
             break
 
+        expanded.append(node)
+
         for child in get_actions(maze, node):
             new_cost = current_cost + 1
-            if new_cost < discovered_node_costs.get(child, float("inf")):
+            if new_cost < frontier_node_costs.get(child, float("inf")):
                 parents[child] = node
-                discovered_node_costs[child] = new_cost
+                frontier_node_costs[child] = new_cost
                 priority = new_cost + heuristic(child, goal)
-                heapq.heappush(discovered, (priority, new_cost, child))
+                heapq.heappush(frontier, (priority, new_cost, child))
 
     node = goal
     while node is not None:
@@ -170,10 +174,10 @@ def astar(maze, start, goal, heuristic=manhattan_distance):
         node = parents[node]
     path.reverse()
 
-    stats["path_length"] = len(path)
-    stats["path_cost"] = discovered_node_costs[goal]
-    stats["nodes_expanded"] = len(visited)
-    return path, visited, stats
+    stats["path_length"] = len(path) - 1
+    stats["path_cost"] = frontier_node_costs[goal]
+    stats["nodes_expanded"] = len(expanded)
+    return path, expanded, stats
 
 
 # esther
@@ -190,13 +194,13 @@ def greedy_best_first(maze, start, goal, heuristic=manhattan_distance):
             return (
                 [],
                 explored_order,
-                {"nodes_expanded": len(explored), "path_length": 0, "path_cost": 0.0},
+                {"nodes_expanded": len(explored), "path_length": 0, "path_cost": 0},
             )
         _, node = frontier.pop(0)
-        explored.add(node)
-        explored_order.append(node)
         if node == goal:
             break
+        explored.add(node)
+        explored_order.append(node)
         for action in get_greedy_actions(maze, node, goal):
             child = action
             if child not in explored and all(child != n for _, n in frontier):
@@ -216,7 +220,7 @@ def greedy_best_first(maze, start, goal, heuristic=manhattan_distance):
         {
             "nodes_expanded": len(explored),
             "path_length": len(path_set) - 1,
-            "path_cost": 0.0,
+            "path_cost": 0,
         },
     )
 
